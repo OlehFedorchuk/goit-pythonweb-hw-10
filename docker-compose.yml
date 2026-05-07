@@ -1,22 +1,25 @@
-version: "3.9"
-
 services:
   db:
-    image: postgres:15
+    image: postgres:16
+
     restart: always
-    env_file:
-      - .env
+
+    environment:
+      POSTGRES_DB: contacts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
     ports:
       - "5432:5432"
 
-  api:
+  app:
     build: .
-    restart: always
-    depends_on:
-      - db
-    env_file:
-      - .env
+
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
+
+    depends_on:
+      - db
+
+    env_file:
+      - .env
