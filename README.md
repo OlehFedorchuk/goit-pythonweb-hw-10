@@ -60,7 +60,9 @@ bash
 
 ## ⚙️ Environment Variables
 
-bash ```
+bash
+
+```
 Create .env file:
 
 POSTGRES_USER=postgres
@@ -82,18 +84,26 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
 ```
----
 
 ## 🐳 Run with Docker
 
+bash
+
+```
 docker-compose up --build
+```
 
+bash
+
+```
 docker-compose down
-
----
+```
 
 ## 🔐 Authentication Flow
 
+bash
+
+```
 POST /auth/register
 POST /auth/login
 
@@ -105,16 +115,16 @@ POST /contacts/
 GET /contacts/{id}
 PUT /contacts/{id}
 DELETE /contacts/{id}
-
----
+```
 
 ## 📧 Email Verification
 
+```
 Register → email → verify → activate account
-
----
+```
 
 ## ☁️ Cloudinary
 
+```
 Used for avatar uploads
 ```
