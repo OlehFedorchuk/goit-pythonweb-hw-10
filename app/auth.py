@@ -1,14 +1,10 @@
 from datetime import datetime, timedelta
 from jose import jwt
 from passlib.context import CryptContext
-from os import getenv
-from dotenv import load_dotenv
+import os
 
-load_dotenv()
-
-SECRET_KEY = getenv("SECRET_KEY")
-
-ALGORITHM = "HS256"
+SECRET_KEY = os.environ["SECRET_KEY"]
+ALGORITHM = os.environ["ALGORITHM"]
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],

@@ -1,19 +1,13 @@
+import os
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models_user import User
 
-from os import getenv
-from dotenv import load_dotenv
-
-load_dotenv()
-
-SECRET_KEY = getenv("SECRET_KEY")
-
-ALGORITHM = "HS256"
+SECRET_KEY = os.environ["SECRET_KEY"]
+ALGORITHM = os.environ["ALGORITHM"]
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login"
@@ -30,7 +24,6 @@ def get_current_user(
     )
 
     try:
-
         payload = jwt.decode(
             token,
             SECRET_KEY,

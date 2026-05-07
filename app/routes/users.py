@@ -3,18 +3,12 @@ from fastapi import Depends
 from fastapi import UploadFile
 from fastapi import File
 from fastapi import Request
-
 from sqlalchemy.orm import Session
-
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-
 import cloudinary.uploader
-
 from app.database import get_db
-
 from app.models_user import User
-
 from app.auth_bearer import get_current_user
 
 router = APIRouter(

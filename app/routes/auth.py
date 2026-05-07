@@ -1,26 +1,21 @@
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import BackgroundTasks
-from fastapi import Request
-
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
-
 from fastapi.security import OAuth2PasswordRequestForm
-
 from app.database import get_db
-
 from app.models_user import User
-
 from app.schemas_user import UserCreate
 
-from app.auth import get_password_hash
-from app.auth import verify_password
-from app.auth import create_access_token
+from app.auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token
+)
 
-from app.email_service import send_verification_email
-from app.email_service import create_email_token
-from app.email_service import confirm_email_token
+from app.email_service import (
+    send_verification_email,
+    create_email_token,
+    confirm_email_token
+)
 
 router = APIRouter(
     prefix="/auth",
@@ -34,7 +29,6 @@ async def register(
     request: Request,
     db: Session = Depends(get_db)
 ):
-
     existing_user = db.query(User).filter(
         User.email == body.email
     ).first()
@@ -45,59 +39,61 @@ async def register(
             detail="Email already exists"
         )
 
-    hashed_password = get_password_hash(
-        body.password
-    )
+
+    hashed_password = get_password_hash(body.password)
 
     new_user = User(
         email=body.email,
         username=body.username,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        verified=False
     )
 
     db.add(new_user)
-
     db.commit()
-
     db.refresh(new_user)
-
-    token = create_email_token(
-        new_user.email
-    )
-
+    token = create_email_token(new_user.email)
     background_tasks.add_task(
         send_verification_email,
         new_user.email,
         str(request.base_url),
         token
     )
+    return {
+        "message": "User created successfully. Check your email to verify account."
+    }
 
-    return new_user
-
-@router.get("/verify/{token}")
+@router.get("/verify")
 def verify_email(
     token: str,
     db: Session = Depends(get_db)
 ):
-
-    email = confirm_email_token(token)
+    try:
+        email = confirm_email_token(token)
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired token"
+        )
 
     user = db.query(User).filter(
         User.email == email
     ).first()
 
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=400,
-            detail="Verification error"
+            detail="User not found"
         )
 
-    user.verified = True
+    if user.verified:
+        return {"message": "Email already verified"}
 
+    user.verified = True
     db.commit()
 
     return {
-        "message": "Email verified"
+        "message": "Email verified successfully"
     }
 
 @router.post("/login")
@@ -105,21 +101,17 @@ def login(
     body: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-
     user = db.query(User).filter(
         User.email == body.username
     ).first()
 
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=401,
             detail="Invalid email"
         )
 
-    if not verify_password(
-        body.password,
-        user.hashed_password
-    ):
+    if not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Invalid password"

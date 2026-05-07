@@ -34,35 +34,49 @@ def get_contact_by_id(db, contact_id, user_id):
 
 
 def update_contact(db, contact_id, data, user_id):
-    contact = get_contact_by_id(db, contact_id, user_id)
+    contact = get_contact_by_id(
+        db,
+        contact_id,
+        user_id
+    )
     if not contact:
         return None
 
-    for key, value in data.model_dump().items():
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(contact, key, value)
-
     db.commit()
     db.refresh(contact)
+
     return contact
 
 
-def delete_contact(db, contact_id, user_id):
-    contact = get_contact_by_id(db, contact_id, user_id)
-    if contact:
-        db.delete(contact)
-        db.commit()
-    return contact
+
+from datetime import date, timedelta
+
+
+from datetime import date, timedelta, datetime
 
 
 def get_upcoming_birthdays(db, user_id):
     today = date.today()
     next_week = today + timedelta(days=7)
 
-    contacts = db.query(Contact).filter(Contact.user_id == user_id).all()
+    contacts = db.query(Contact).filter(
+        Contact.user_id == user_id
+    ).all()
+
     result = []
 
     for c in contacts:
-        bd = c.birthday.replace(year=today.year)
+
+        bd = datetime.strptime(
+            c.birthday,
+            "%Y-%m-%d"
+        ).date()
+
+        bd = bd.replace(year=today.year)
+
         if bd < today:
             bd = bd.replace(year=today.year + 1)
 
@@ -70,3 +84,15 @@ def get_upcoming_birthdays(db, user_id):
             result.append(c)
 
     return result
+
+def delete_contact(db, contact_id, user_id):
+    contact = db.query(Contact).filter(
+        Contact.id == contact_id,
+        Contact.user_id == user_id
+    ).first()
+
+    if contact:
+        db.delete(contact)
+        db.commit()
+
+    return contact

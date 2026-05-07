@@ -7,6 +7,8 @@ class ContactSchema(BaseModel):
     phone: str
     birthday: str
     additional_data: str
+class ContactCreate(ContactSchema):
+    pass
 
 class ContactResponse(ContactSchema):
     id: int
